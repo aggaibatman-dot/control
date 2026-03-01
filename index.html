@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TERMINAL BREACH</title>
+    <meta name="description" content="System Terminal">
+    <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+
+<body>
+
+    <!-- Overlays -->
+    <div class="overlay-scanlines"></div>
+    <div class="overlay-vignette"></div>
+    <div class="overlay-flicker"></div>
+    <div class="glitch-overlay" id="glitch-overlay"></div>
+    <div class="red-flash" id="red-flash"></div>
+
+    <!-- Background canvases -->
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Mouse glow -->
+    <div id="mouse-glow"></div>
+
+    <!-- Terminal -->
+    <div id="terminal"></div>
+
+    <!-- Lock screen (panic) -->
+    <div id="lock-screen">
+        <div class="progress-ring-container">
+            <svg class="progress-ring" viewBox="0 0 140 140">
+                <circle class="progress-ring-bg" cx="70" cy="70" r="65" />
+                <circle class="progress-ring-fill" id="ring-fill" cx="70" cy="70" r="65" />
+            </svg>
+        </div>
+        <div class="lock-title">YOUR DEVICE HAS BEEN LOCKED</div>
+        <div class="lock-sub">All data is now under remote control.</div>
+    </div>
+
+    <!-- Reveal screen -->
+    <div id="reveal-screen">
+        <div class="reveal-emoji">😄</div>
+        <div class="reveal-title">RELAX — THIS IS A PRANK!</div>
+        <div class="reveal-sub">Your system is safe. Got you. 💚</div>
+        <div class="reveal-safe">No data was accessed. Nothing was breached. Promise.</div>
+        <button class="restart-btn" id="restart-btn">▶ Run Again</button>
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="./assets/js/script.js"></script>
+</body>
+
+</html>

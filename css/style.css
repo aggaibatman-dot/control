@@ -1,0 +1,564 @@
+/* ============================================
+   TERMINAL BREACH — Cinematic Prank Page
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@600;700&display=swap');
+
+/* --- Tokens --- */
+:root {
+    --green: #00ff66;
+    --green-dim: rgba(0, 255, 102, 0.35);
+    --green-glow: rgba(0, 255, 102, 0.5);
+    --red: #ff0033;
+    --red-dim: rgba(255, 0, 51, 0.35);
+    --red-glow: rgba(255, 0, 51, 0.5);
+    --bg: #000000;
+    --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+    --font-display: 'Rajdhani', sans-serif;
+}
+
+/* --- Reset --- */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: var(--font-mono);
+    color: var(--green);
+    cursor: none;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+}
+
+::selection {
+    background: var(--green);
+    color: #000;
+}
+
+/* ============================================
+   CRT / SCANLINE / VIGNETTE OVERLAYS
+   ============================================ */
+.overlay-scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 255, 102, 0.012) 2px,
+            rgba(0, 255, 102, 0.012) 4px);
+}
+
+.overlay-vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 9997;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+.overlay-flicker {
+    position: fixed;
+    inset: 0;
+    z-index: 9996;
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(0, 255, 102, 0.02);
+    animation: crt-flicker 0.12s infinite;
+}
+
+@keyframes crt-flicker {
+    0% {
+        opacity: 0.015;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 0.01;
+    }
+}
+
+/* ============================================
+   GLITCH OVERLAY
+   ============================================ */
+.glitch-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.glitch-overlay.active {
+    animation: glitch-flash 0.3s steps(3) forwards;
+}
+
+@keyframes glitch-flash {
+    0% {
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 1;
+        background: rgba(255, 0, 51, 0.08);
+        transform: translateX(-3px) skewX(-2deg);
+    }
+
+    30% {
+        opacity: 0.5;
+        background: rgba(0, 255, 102, 0.05);
+        transform: translateX(4px) skewX(1deg);
+    }
+
+    50% {
+        opacity: 1;
+        background: rgba(255, 0, 51, 0.06);
+        transform: translateX(-2px);
+    }
+
+    70% {
+        opacity: 0.3;
+        transform: translateX(3px) skewX(-1deg);
+    }
+
+    100% {
+        opacity: 0;
+        transform: none;
+    }
+}
+
+/* ============================================
+   RED FLASH
+   ============================================ */
+.red-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    pointer-events: none;
+    background: rgba(255, 0, 51, 0.15);
+    opacity: 0;
+}
+
+.red-flash.active {
+    animation: red-pulse 0.4s ease-out forwards;
+}
+
+@keyframes red-pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   BACKGROUND BINARY RAIN CANVAS
+   ============================================ */
+#bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.12;
+}
+
+/* ============================================
+   RED PARTICLES CANVAS
+   ============================================ */
+#particle-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ============================================
+   MOUSE GLOW
+   ============================================ */
+#mouse-glow {
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 255, 102, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s;
+    opacity: 0;
+}
+
+body:hover #mouse-glow,
+body.touched #mouse-glow {
+    opacity: 1;
+}
+
+/* ============================================
+   TERMINAL CONTAINER
+   ============================================ */
+#terminal {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(16px, 4vw, 40px);
+    padding-top: clamp(24px, 5vw, 50px);
+    overflow: hidden;
+}
+
+.term-line {
+    font-size: clamp(0.72rem, 1.8vw, 0.95rem);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    opacity: 0;
+    transform: translateY(4px);
+    min-height: 1.65em;
+}
+
+.term-line.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.term-line.green {
+    color: var(--green);
+    text-shadow: 0 0 6px var(--green-dim);
+}
+
+.term-line.red {
+    color: var(--red);
+    text-shadow: 0 0 8px var(--red-dim);
+    font-weight: bold;
+}
+
+.term-line.dim {
+    color: rgba(0, 255, 102, 0.4);
+}
+
+.term-line.file {
+    color: rgba(0, 255, 102, 0.6);
+    padding-left: 1.5em;
+}
+
+/* Blinking cursor */
+.cursor {
+    display: inline-block;
+    width: clamp(6px, 1vw, 9px);
+    height: 1.1em;
+    background: var(--green);
+    vertical-align: text-bottom;
+    margin-left: 2px;
+    animation: blink 0.55s step-end infinite;
+    box-shadow: 0 0 6px var(--green-glow);
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   LOCK SCREEN (PANIC PHASE)
+   ============================================ */
+#lock-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.96);
+    gap: 18px;
+    padding: 20px;
+}
+
+#lock-screen.active {
+    display: flex;
+    animation: screen-shake 0.5s ease;
+}
+
+/* Progress ring */
+.progress-ring-container {
+    position: relative;
+    width: clamp(100px, 25vw, 160px);
+    height: clamp(100px, 25vw, 160px);
+    margin-bottom: 10px;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: rgba(255, 0, 51, 0.15);
+    stroke-width: 4;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: var(--red);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 408;
+    stroke-dashoffset: 408;
+    filter: drop-shadow(0 0 8px var(--red-glow));
+    transition: stroke-dashoffset 0.3s linear;
+}
+
+.lock-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    color: var(--red);
+    letter-spacing: clamp(3px, 1vw, 8px);
+    text-transform: uppercase;
+    text-shadow: 0 0 30px var(--red-glow), 0 0 60px rgba(255, 0, 51, 0.2);
+    text-align: center;
+    animation: lock-pulse 0.8s ease-in-out infinite;
+}
+
+.lock-sub {
+    font-size: clamp(0.7rem, 2vw, 1rem);
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+@keyframes lock-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+}
+
+@keyframes screen-shake {
+
+    0%,
+    100% {
+        transform: translate(0);
+    }
+
+    10% {
+        transform: translate(-6px, 4px);
+    }
+
+    20% {
+        transform: translate(5px, -5px);
+    }
+
+    30% {
+        transform: translate(-4px, 6px);
+    }
+
+    40% {
+        transform: translate(6px, -2px);
+    }
+
+    50% {
+        transform: translate(-5px, 5px);
+    }
+
+    60% {
+        transform: translate(3px, -6px);
+    }
+
+    70% {
+        transform: translate(-6px, 2px);
+    }
+
+    80% {
+        transform: translate(4px, 3px);
+    }
+
+    90% {
+        transform: translate(-2px, -4px);
+    }
+}
+
+/* Camera zoom during panic */
+#terminal.zoom-in {
+    transition: transform 8s ease-in;
+    transform: scale(1.08);
+    transform-origin: center center;
+}
+
+/* ============================================
+   REVEAL SCREEN
+   ============================================ */
+#reveal-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.97);
+    gap: 16px;
+    padding: 20px;
+}
+
+#reveal-screen.active {
+    display: flex;
+}
+
+.reveal-emoji {
+    font-size: clamp(3rem, 10vw, 5rem);
+    animation: bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.reveal-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 6vw, 3.5rem);
+    color: var(--green);
+    letter-spacing: clamp(3px, 1vw, 8px);
+    text-shadow: 0 0 30px var(--green-glow), 0 0 60px rgba(0, 255, 102, 0.2);
+    text-align: center;
+    animation: bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+.reveal-sub {
+    font-size: clamp(0.75rem, 2.2vw, 1.1rem);
+    color: rgba(0, 255, 102, 0.6);
+    letter-spacing: 2px;
+    text-align: center;
+    animation: bounce-in 0.5s ease 0.3s both;
+}
+
+.reveal-safe {
+    font-size: clamp(0.65rem, 1.5vw, 0.8rem);
+    color: rgba(255, 255, 255, 0.3);
+    letter-spacing: 1px;
+    margin-top: 6px;
+    text-align: center;
+    animation: bounce-in 0.5s ease 0.5s both;
+}
+
+.restart-btn {
+    margin-top: 20px;
+    padding: clamp(10px, 2vw, 14px) clamp(24px, 5vw, 40px);
+    background: transparent;
+    border: 1px solid var(--green);
+    border-radius: 6px;
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.25s ease;
+    animation: bounce-in 0.5s ease 0.6s both;
+}
+
+.restart-btn:hover {
+    background: rgba(0, 255, 102, 0.1);
+    box-shadow: 0 0 20px var(--green-dim);
+    text-shadow: 0 0 8px var(--green);
+}
+
+@keyframes bounce-in {
+    from {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   CONFETTI CANVAS
+   ============================================ */
+#confetti-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    pointer-events: none;
+}
+
+/* ============================================
+   AUDIO TOGGLE
+   ============================================ */
+#audio-toggle {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 10000;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 255, 102, 0.04);
+    border: 1px solid rgba(0, 255, 102, 0.12);
+    border-radius: 50%;
+    color: var(--green);
+    font-size: 18px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: 0.2s;
+}
+
+#audio-toggle:hover {
+    border-color: var(--green);
+    box-shadow: 0 0 12px var(--green-dim);
+}
+
+/* ============================================
+   MOBILE
+   ============================================ */
+@media (max-width: 600px) {
+    body {
+        cursor: auto;
+    }
+
+    #mouse-glow {
+        display: none;
+    }
+
+    #terminal {
+        padding: 14px 12px;
+        padding-top: 20px;
+    }
+}
+
+@media (max-width: 360px) {
+    .term-line {
+        font-size: 0.68rem;
+    }
+}
